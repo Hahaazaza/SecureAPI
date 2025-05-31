@@ -50,8 +50,8 @@ public class UserServiceImpl implements UserService {
             throw new InvalidCredentialsException("Invalid credentials");
         }
 
-        String accessToken = jwtService.generateAccessToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
+        String accessToken = jwtService.generateAccessToken(user.getId(), user.getRole().name());
+        String refreshToken = jwtService.generateRefreshToken(user.getId());
 
         return new AuthResponse(accessToken, refreshToken, user.getId(), user.getRole().name());
     }
@@ -66,8 +66,8 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        String newAccessToken = jwtService.generateAccessToken(user);
-        String newRefreshToken = jwtService.generateRefreshToken(user);
+        String newAccessToken = jwtService.generateAccessToken(user.getId(), user.getRole().name());
+        String newRefreshToken = jwtService.generateRefreshToken(user.getId());
 
         return new AuthResponse(newAccessToken, newRefreshToken, user.getId(), user.getRole().name());
     }

@@ -1,55 +1,69 @@
 package com.example.SecureAPI.service;
 
 import com.example.SecureAPI.model.RefreshToken;
-import com.example.SecureAPI.model.User;
 import com.example.SecureAPI.repository.RefreshTokenRepository;
 import com.example.SecureAPI.security.JwtUtils;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
+@AllArgsConstructor
 public class JwtService {
 
     private final JwtUtils jwtUtils;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    public JwtService(JwtUtils jwtUtils, RefreshTokenRepository refreshTokenRepository) {
-        this.jwtUtils = jwtUtils;
-        this.refreshTokenRepository = refreshTokenRepository;
+    /**
+     * Генерирует access JWT токен по ID пользователя и его роли
+     */
+    public String generateAccessToken(Long userId, String role) {
+        return jwtUtils.generateToken(userId, role);
     }
 
-    public String generateAccessToken(User user) {
-        return jwtUtils.generateToken(user.getId(), user.getRole().name());
-    }
-
-    public String generateRefreshToken(User user) {
+    /**
+     * Генерирует refresh токен и сохраняет его в БД
+     */
+    public String generateRefreshToken(Long userId) {
         String token = UUID.randomUUID().toString();
+
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setId(token);
-        refreshToken.setUser(user);
+        refreshToken.setUserId(userId);
         refreshToken.setExpiryDate(LocalDateTime.now().plusDays(7));
         refreshToken.setRevoked(false);
+
         refreshTokenRepository.save(refreshToken);
+
         return token;
     }
 
+    /**
+     * Проверяет, не истёк ли refresh токен и не отозван ли он
+     */
     public boolean validateRefreshToken(String token) {
         return refreshTokenRepository.findById(token)
-                .map(t -> !t.isRevoked() && t.getExpiryDate().isAfter(LocalDateTime.now()))
+                .map(rt -> !rt.isRevoked() && rt.getExpiryDate().isAfter(LocalDateTime.now()))
                 .orElse(false);
     }
 
+    /**
+     * Возвращает userId из refresh токена
+     */
     public Long getUserIdFromRefreshToken(String token) {
         return refreshTokenRepository.findById(token)
-                .map(rt -> rt.getUser().getId())
+                .map(RefreshToken::getUserId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
     }
 
+    /**
+     * Отзывает все refresh токены пользователя (например, при выходе из аккаунта)
+     */
     public void revokeAllTokensByUserId(Long userId) {
-        refreshTokenRepository.findByUserId(userId).ifPresent(rt -> {
-            rt.setRevoked(true);
-            refreshTokenRepository.save(rt);
-        });
+        List<RefreshToken> tokens = refreshTokenRepository.findAllByUserId(userId);
+        tokens.forEach(t -> t.setRevoked(true));
+        refreshTokenRepository.saveAll(tokens);
     }
 }

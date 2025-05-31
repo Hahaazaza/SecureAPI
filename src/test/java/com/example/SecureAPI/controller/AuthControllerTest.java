@@ -35,7 +35,7 @@ public class AuthControllerTest {
     }
 
     @Test
-    void register_ShouldReturnOk() throws Exception {
+    void register_ShouldReturnCreated() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("test@example.com");
         request.setPassword("password");
@@ -57,7 +57,7 @@ public class AuthControllerTest {
         request.setEmail("test@example.com");
         request.setPassword("password");
 
-        AuthResponse fakeResponse = new AuthResponse("fake-jwt-token", "USER", 1L);
+        AuthResponse fakeResponse = new AuthResponse("fake-jwt-token", "refresh-123", 1L, "USER");
 
         when(userService.login("test@example.com", "password")).thenReturn(fakeResponse);
 
@@ -65,8 +65,9 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"test@example.com\",\"password\":\"password\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("fake-jwt-token"))
-                .andExpect(jsonPath("$.role").value("USER"))
-                .andExpect(jsonPath("$.userId").value(1));
+                .andExpect(jsonPath("$.accessToken").value("fake-jwt-token"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-123"))
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.role").value("USER"));
     }
 }

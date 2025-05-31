@@ -10,16 +10,9 @@ import java.util.Date;
 
 @Component
 public class JwtUtils {
-
-    // Секретный ключ для подписи JWT (длина >= 512 бит)
     private final String SECRET_STRING = "VGhpcyBpcyBhIHNlY3VyZSByYW5kb20gc2VjcmV0IGtleSBmb3IgSFNGMTI4IHdoaWNoIGlzIHN1ZmZpY2llbnRseSBsb25nIGVuY291Z2ggdG8gdXNlIHdpdGggSFN4IGFsZ29yaXRobXM=";
-
-    // Длина строки должна быть >= 512 бит (>= 64 байт)
     private final byte[] secretBytes = Base64.getDecoder().decode(SECRET_STRING);
-
-    // Убедитесь, что ключ подходит для HS512
     private final Key SIGNING_KEY = new SecretKeySpec(secretBytes, SignatureAlgorithm.HS512.getJcaName());
-
     private final long EXPIRATION = 86400000; // 24 часа
 
     public String generateToken(Long userId, String role) {
@@ -29,15 +22,6 @@ public class JwtUtils {
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(SIGNING_KEY, SignatureAlgorithm.HS512)
                 .compact();
-    }
-
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder().setSigningKey(SIGNING_KEY).build().parseClaimsJws(token);
-            return true;
-        } catch (JwtException e) {
-            return false;
-        }
     }
 
     public String extractUserId(String token) {
@@ -56,5 +40,14 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody()
                 .get("role", String.class);
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(SIGNING_KEY).build().parseClaimsJws(token);
+            return true;
+        } catch (JwtException e) {
+            return false;
+        }
     }
 }
