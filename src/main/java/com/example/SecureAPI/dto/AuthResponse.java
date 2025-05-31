@@ -1,16 +1,15 @@
 package com.example.SecureAPI.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class AuthResponse {
-    private String token;
+    private String accessToken;
+    private String refreshToken;
     private Long userId;
     private String role;
-
-    public AuthResponse(String token, String role, Long userId) {
-        this.token = token;
-        this.role = role;
-        this.userId = userId;
-    }
 }

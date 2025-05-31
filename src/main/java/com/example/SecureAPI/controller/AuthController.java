@@ -31,4 +31,10 @@ public class AuthController {
         AuthResponse response = userService.login(request.getEmail(), request.getPassword());
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestParam String refreshToken) {
+        AuthResponse response = userService.refreshToken(refreshToken);
+        return ResponseEntity.ok(response);
+    }
 }

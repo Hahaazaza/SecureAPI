@@ -5,5 +5,6 @@ import com.example.SecureAPI.dto.RegisterRequest;
 
 public interface UserService {
     void register(RegisterRequest request);
-    AuthResponse login(String email, String password); // Теперь возвращает AuthResponse
+    AuthResponse login(String email, String password);
+    AuthResponse refreshToken(String refreshToken);
 }

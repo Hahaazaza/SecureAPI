@@ -19,10 +19,8 @@ public class JwtFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-
         HttpServletRequest httpRequest = (HttpServletRequest) request;
 
-        // Пропустить /auth/**
         if (httpRequest.getRequestURI().startsWith("/auth/")) {
             chain.doFilter(request, response);
             return;
@@ -30,7 +28,6 @@ public class JwtFilter implements Filter {
 
         String token = httpRequest.getHeader("Authorization");
 
-        // Внутри JwtFilter.doFilter
         if (token != null && jwtUtils.validateToken(token)) {
             String userId = jwtUtils.extractUserId(token);
             String role = jwtUtils.extractRole(token);
@@ -39,9 +36,8 @@ public class JwtFilter implements Filter {
                     userId, null,
                     List.of(new SimpleGrantedAuthority("ROLE_" + role))
             );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // Записываем userId в запрос для MDC
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             request.setAttribute("userId", userId);
         }
 
