@@ -10,6 +10,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -27,19 +28,22 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp
-                                .policyDirectives("script-src 'self'; object-src 'none'; style-src 'self'"))
+                                .policyDirectives("default-src 'self'; script-src 'self' https://trusted-cdn.com;  object-src 'none'; style-src 'self'; img-src 'self' data:;"))
                         .httpStrictTransportSecurity(hsts -> hsts
                                 .maxAgeInSeconds(31536000)
                                 .includeSubDomains(true)
                                 .preload(true))
-                        .xssProtection(xss -> xss.disable())
+                        .xssProtection(xss -> xss.headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
                         .frameOptions(frame -> frame.sameOrigin())
                         .cacheControl(cache -> cache.disable()))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/products/**").hasAnyRole("ADMIN", "EMPLOYEE")
-                        .anyRequest().authenticated());
+                        .anyRequest().authenticated())
+                .requiresChannel(channel -> channel
+                        .requestMatchers("/**")
+                        .requiresSecure());
 
         return http.build();
     }

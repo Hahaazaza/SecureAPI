@@ -21,7 +21,6 @@ public class JwtUtils {
 
     private Key SIGNING_KEY;
 
-    // Вызывается после внедрения значений
     @PostConstruct
     public void init() {
         byte[] secretBytes = Base64.getDecoder().decode(secretString);
@@ -33,6 +32,7 @@ public class JwtUtils {
                 .setSubject(userId.toString())
                 .claim("role", role)
                 .setIssuedAt(new Date())
+                .setNotBefore(new Date(System.currentTimeMillis() + 1000))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(SIGNING_KEY, SignatureAlgorithm.HS512)
                 .compact();
@@ -64,7 +64,6 @@ public class JwtUtils {
                     .parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            // Логируйте ошибку при необходимости
             return false;
         }
     }

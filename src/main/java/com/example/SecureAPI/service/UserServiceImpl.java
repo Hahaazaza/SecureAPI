@@ -18,10 +18,12 @@ import java.util.Objects;
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
+
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
     private final JwtService jwtService;
 
     @Override
@@ -50,7 +52,7 @@ public class UserServiceImpl implements UserService {
             throw new InvalidCredentialsException("Invalid credentials");
         }
 
-        String accessToken = jwtService.generateAccessToken(user.getId(), user.getRole().name());
+        String accessToken = jwtUtils.generateToken(user.getId(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getId());
 
         return new AuthResponse(accessToken, refreshToken, user.getId(), user.getRole().name());
@@ -63,10 +65,10 @@ public class UserServiceImpl implements UserService {
         }
 
         Long userId = jwtService.getUserIdFromRefreshToken(refreshToken);
-        User user = userRepository.findById(userId)
+        var user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        String newAccessToken = jwtService.generateAccessToken(user.getId(), user.getRole().name());
+        String newAccessToken = jwtUtils.generateToken(user.getId(), user.getRole().name());
         String newRefreshToken = jwtService.generateRefreshToken(user.getId());
 
         return new AuthResponse(newAccessToken, newRefreshToken, user.getId(), user.getRole().name());

@@ -19,14 +19,7 @@ public class JwtFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-
-        if (httpRequest.getRequestURI().startsWith("/auth/")) {
-            chain.doFilter(request, response);
-            return;
-        }
-
         String token = httpRequest.getHeader("Authorization");
 
         if (token != null && jwtUtils.validateToken(token)) {
